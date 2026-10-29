@@ -63,6 +63,10 @@ export const GET_ADMIN_USERS = "/admin/users";
 export const ACTIVATE_USER = (id: number) => `/admin/users/${id}/activate`;
 export const DEACTIVATE_USER = (id: number) => `/admin/users/${id}/deactivate`;
 
+export const GET_AI_SETTINGS = "/admin/ai";
+export const UPDATE_AI_SETTINGS = "/admin/ai";
+export const TEST_AI_PROVIDER = "/admin/ai/test";
+
 export const GET_PLANS = "/admin/plans";
 export const CREATE_PLAN = "/admin/plans";
 export const UPDATE_PLAN = (id: number) => `/admin/plans/${id}`;

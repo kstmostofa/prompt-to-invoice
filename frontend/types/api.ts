@@ -279,3 +279,41 @@ export interface AdminDashboard {
   signups: { date: string; count: number }[];
   plans: { name: string; slug: string; count: number }[];
 }
+
+export interface AiProvider {
+  id: string;
+  label: string;
+  driver: "anthropic" | "openai" | "gemini";
+  /** Has an API key and model on the server. Keys are never sent here. */
+  configured: boolean;
+  default_model: string | null;
+  models: string[];
+  usage_30d: {
+    requests: number;
+    succeeded: number;
+    input_tokens: number;
+    output_tokens: number;
+    avg_duration_ms: number;
+  };
+}
+
+export interface AiSettings {
+  provider: string;
+  model: string | null;
+  fallback: string | null;
+  fallback_model: string | null;
+}
+
+export type AiTestResult =
+  | {
+      success: true;
+      data: {
+        provider: string;
+        model: string;
+        input_tokens: number;
+        output_tokens: number;
+        duration_ms: number;
+        output: Record<string, unknown>;
+      };
+    }
+  | { success: false; reason?: string; message: string; duration_ms?: number };
