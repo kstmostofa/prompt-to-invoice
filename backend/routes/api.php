@@ -6,10 +6,13 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\WorkspaceController as AdminWorkspaceController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\PublicInvoiceController;
 use App\Http\Controllers\Workspace\BusinessProfileController;
 use App\Http\Controllers\Workspace\ClientController;
 use App\Http\Controllers\Workspace\DashboardController;
 use App\Http\Controllers\Workspace\InvoiceController;
+use App\Http\Controllers\Workspace\InvoiceGenerationController;
 use App\Http\Controllers\Workspace\WorkspaceController;
 use App\Http\Resources\PlanResource;
 use App\Models\Plan;
@@ -34,16 +37,26 @@ Route::prefix('v1')->group(function (): void {
         Plan::query()->where('is_active', true)->orderBy('sort_order')->get(),
     ));
 
+    // Public: the client's view of a sent invoice, by its token.
+    Route::prefix('public/invoices/{token}')->controller(PublicInvoiceController::class)->middleware('throttle:60,1,public-invoice')->group(function (): void {
+        Route::get('/', 'show');
+        Route::get('/pdf', 'pdf');
+    });
+
     Route::prefix('auth')->group(function (): void {
-        Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
-        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
-        Route::post('/forgot-password', [PasswordController::class, 'forgot'])->middleware('throttle:5,1');
-        Route::post('/reset-password', [PasswordController::class, 'reset'])->middleware('throttle:10,1');
+        Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1,register');
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1,login');
+        Route::post('/forgot-password', [PasswordController::class, 'forgot'])->middleware('throttle:5,1,forgot-password');
+        Route::post('/reset-password', [PasswordController::class, 'reset'])->middleware('throttle:10,1,reset-password');
+        Route::get('/verify-email/{id}/{hash}', [VerificationController::class, 'verify'])
+            ->middleware(['signed', 'throttle:6,1,verify-email'])
+            ->name('verification.verify');
 
         Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
             Route::get('/user', [AuthController::class, 'user']);
             Route::put('/user', [AuthController::class, 'update']);
-            Route::put('/user/password', [PasswordController::class, 'change'])->middleware('throttle:10,1');
+            Route::put('/user/password', [PasswordController::class, 'change'])->middleware('throttle:10,1,change-password');
+            Route::post('/email/verification-notification', [VerificationController::class, 'resend'])->middleware('throttle:3,1,resend-verification');
             Route::post('/logout', [AuthController::class, 'logout']);
         });
     });
@@ -59,9 +72,11 @@ Route::prefix('v1')->group(function (): void {
             Route::apiResource('clients', ClientController::class);
 
             Route::get('/invoices/defaults', [InvoiceController::class, 'defaults']);
+            Route::post('/invoices/generate', InvoiceGenerationController::class)->middleware('throttle:ai');
             Route::apiResource('invoices', InvoiceController::class);
             Route::prefix('/invoices/{invoice}')->controller(InvoiceController::class)->group(function (): void {
                 Route::post('/send', 'markSent');
+                Route::post('/email', 'email')->middleware('throttle:20,1,email-invoice');
                 Route::post('/mark-paid', 'markPaid');
                 Route::post('/mark-unpaid', 'markUnpaid');
                 Route::post('/void', 'void');

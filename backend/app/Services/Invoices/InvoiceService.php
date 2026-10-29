@@ -4,12 +4,14 @@ namespace App\Services\Invoices;
 
 use App\Enums\DiscountType;
 use App\Enums\InvoiceStatus;
+use App\Mail\InvoiceMail;
 use App\Models\BusinessProfile;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Support\CurrentWorkspace;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -109,6 +111,36 @@ class InvoiceService
     {
         $this->guardTransition($invoice, [InvoiceStatus::Draft, InvoiceStatus::Sent], 'sent');
         $invoice->update(['status' => InvoiceStatus::Sent, 'sent_at' => $invoice->sent_at ?? now()]);
+
+        return $invoice;
+    }
+
+    /**
+     * Email the invoice with its PDF, and count a draft as sent.
+     *
+     * @param  array{to: string, cc?: list<string>|null, subject: string, message: string}  $data
+     */
+    public function email(Invoice $invoice, array $data, User $sender): Invoice
+    {
+        if (! $sender->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                'to' => ['Verify your email address before sending invoices. Check your inbox for the link, or resend it from the banner.'],
+            ]);
+        }
+
+        if ($invoice->status === InvoiceStatus::Void) {
+            throw ValidationException::withMessages(['status' => ['A void invoice cannot be sent.']]);
+        }
+
+        if ($invoice->status === InvoiceStatus::Draft) {
+            $this->markSent($invoice);
+        }
+
+        $invoice->update(['emailed_at' => now(), 'last_emailed_to' => $data['to']]);
+
+        Mail::to($data['to'])
+            ->cc($data['cc'] ?? [])
+            ->queue(new InvoiceMail($invoice, $data['subject'], $data['message']));
 
         return $invoice;
     }

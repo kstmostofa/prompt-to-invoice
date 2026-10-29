@@ -43,6 +43,9 @@ class AuthService
             return $user;
         });
 
+        // A mail failure must not lose the signup; the banner offers a resend.
+        rescue(fn () => $user->sendEmailVerificationNotification(), report: true);
+
         return $this->tokenResponse($user, 'Registration successful', Response::HTTP_CREATED);
     }
 

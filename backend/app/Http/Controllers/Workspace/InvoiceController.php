@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Workspace;
 use App\Enums\InvoiceStatus;
 use App\Http\Controllers\Concerns\SortsQueries;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Workspace\EmailInvoiceRequest;
 use App\Http\Requests\Workspace\InvoiceRequest;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
@@ -89,6 +90,15 @@ class InvoiceController extends Controller
     public function markSent(Invoice $invoice): JsonResponse
     {
         return $this->successWithData(new InvoiceResource($this->invoices->markSent($invoice)->load('items', 'client')), 'Invoice marked as sent');
+    }
+
+    public function email(EmailInvoiceRequest $request, Invoice $invoice): JsonResponse
+    {
+        /** @var array{to: string, cc?: list<string>|null, subject: string, message: string} $data */
+        $data = $request->validated();
+        $invoice = $this->invoices->email($invoice, $data, $request->user());
+
+        return $this->successWithData(new InvoiceResource($invoice->load('items', 'client')), "Invoice emailed to {$data['to']}");
     }
 
     public function markPaid(Request $request, Invoice $invoice): JsonResponse

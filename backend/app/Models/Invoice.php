@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * @property InvoiceStatus $status
@@ -54,6 +55,9 @@ class Invoice extends Model
         'footer',
         'source_prompt',
         'sent_at',
+        'emailed_at',
+        'last_emailed_to',
+        'viewed_at',
         'paid_at',
         'voided_at',
     ];
@@ -78,9 +82,27 @@ class Invoice extends Model
             'from_details' => 'array',
             'to_details' => 'array',
             'sent_at' => 'datetime',
+            'emailed_at' => 'datetime',
+            'viewed_at' => 'datetime',
             'paid_at' => 'datetime',
             'voided_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Every invoice gets an unguessable link for the client to view it.
+        static::creating(function (Invoice $invoice): void {
+            $invoice->public_token ??= Str::random(40);
+        });
+    }
+
+    /**
+     * Where the client views the invoice without signing in.
+     */
+    public function publicUrl(): string
+    {
+        return config('app.frontend_url').'/i/'.$this->public_token;
     }
 
     public function isOverdue(): bool

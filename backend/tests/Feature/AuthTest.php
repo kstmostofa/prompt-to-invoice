@@ -108,3 +108,21 @@ it('changes the password when the current one is right', function () {
         'password_confirmation' => 'x-secret-password',
     ])->assertUnprocessable()->assertJsonValidationErrors('current_password');
 });
+
+it('rate limits each auth endpoint on its own', function () {
+    User::factory()->create(['email' => 'grace@example.com']);
+
+    foreach (range(1, 10) as $attempt) {
+        $this->postJson('/v1/auth/login', ['email' => 'grace@example.com', 'password' => 'wrong']);
+    }
+    $this->postJson('/v1/auth/login', ['email' => 'grace@example.com', 'password' => 'wrong'])->assertTooManyRequests();
+
+    // Failed logins must not use up the sign-up allowance.
+    $this->postJson('/v1/auth/register', [
+        'name' => 'Ada',
+        'email' => 'ada@example.com',
+        'password' => 'secret-password',
+        'password_confirmation' => 'secret-password',
+        'workspace_name' => 'Studio',
+    ])->assertCreated();
+});
