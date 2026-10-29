@@ -5,6 +5,7 @@ import {
   Building03Icon,
   ChevronRightIcon,
   DashboardSquare01Icon,
+  Invoice01Icon,
   Layers01Icon,
   Settings01Icon,
   UserGroupIcon,
@@ -48,6 +49,12 @@ function workspaceNav(pathname: string, user?: AccessUser | null): NavGroup[] {
     {
       label: "Billing",
       items: [
+        {
+          title: "Invoices",
+          url: "/invoices",
+          icon: Invoice01Icon,
+          isActive: pathname.startsWith("/invoices"),
+        },
         {
           title: "Clients",
           url: "/clients",

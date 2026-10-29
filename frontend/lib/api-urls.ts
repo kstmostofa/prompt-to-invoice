@@ -30,6 +30,19 @@ export const GET_CLIENT = (id: number) => `/clients/${id}`;
 export const UPDATE_CLIENT = (id: number) => `/clients/${id}`;
 export const DELETE_CLIENT = (id: number) => `/clients/${id}`;
 
+export const GET_INVOICES = "/invoices";
+export const GET_INVOICE_DEFAULTS = "/invoices/defaults";
+export const CREATE_INVOICE = "/invoices";
+export const GET_INVOICE = (id: number) => `/invoices/${id}`;
+export const UPDATE_INVOICE = (id: number) => `/invoices/${id}`;
+export const DELETE_INVOICE = (id: number) => `/invoices/${id}`;
+export const SEND_INVOICE = (id: number) => `/invoices/${id}/send`;
+export const MARK_INVOICE_PAID = (id: number) => `/invoices/${id}/mark-paid`;
+export const MARK_INVOICE_UNPAID = (id: number) => `/invoices/${id}/mark-unpaid`;
+export const VOID_INVOICE = (id: number) => `/invoices/${id}/void`;
+export const DUPLICATE_INVOICE = (id: number) => `/invoices/${id}/duplicate`;
+export const GET_INVOICE_PDF = (id: number) => `/invoices/${id}/pdf`;
+
 // PLATFORM ADMIN
 export const GET_ADMIN_DASHBOARD = "/admin/dashboard";
 

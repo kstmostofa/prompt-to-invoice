@@ -1,13 +1,15 @@
 import { Edit03Icon, UserIcon } from "@hugeicons/core-free-icons";
 import AppLayout from "@/components/layouts/app-layout";
-import { DetailCard, LabeledItem } from "@/components/shared/detail-card";
+import { DetailCard, LabeledItem, StatusPill } from "@/components/shared/detail-card";
 import { Flag } from "@/components/shared/flag";
 import Icon from "@/components/shared/icon";
 import { Button } from "@/components/ui/button";
 import { getClient } from "@/lib/clients";
+import { getInvoices } from "@/lib/invoices";
 import { countryName } from "@/lib/countries";
-import { formatDate } from "@/lib/helper";
+import { formatDate, formatMoney } from "@/lib/helper";
 import { pageTitle } from "@/lib/site";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ClientForm } from "../form";
 
@@ -15,9 +17,12 @@ export const metadata = { title: pageTitle("Client") };
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const client = await getClient(Number(id))
-    .then((response) => response.data)
-    .catch(() => notFound());
+  const [client, invoices] = await Promise.all([
+    getClient(Number(id))
+      .then((response) => response.data)
+      .catch(() => notFound()),
+    getInvoices({ client_id: id, per_page: "20" }),
+  ]);
 
   const address = [client.address_line1, client.address_line2, [client.postal_code, client.city].filter(Boolean).join(" "), client.state]
     .filter(Boolean)
@@ -71,6 +76,32 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             <LabeledItem label="Currency" value={client.currency ?? "Business default"} />
             <LabeledItem label="Client since" value={formatDate(client.created_at)} />
           </div>
+        </DetailCard>
+        <DetailCard
+          title={`Invoices (${invoices.meta.total})`}
+          className="lg:col-span-3"
+          action={
+            <Button size="sm" variant="outline" render={<Link href="/invoices/new" />}>
+              New invoice
+            </Button>
+          }
+        >
+          {invoices.data.length ? (
+            <ul className="divide-y">
+              {invoices.data.map((invoice) => (
+                <li key={invoice.id}>
+                  <Link href={`/invoices/${invoice.id}`} className="flex items-center justify-between gap-4 py-2.5 hover:text-primary">
+                    <span className="font-mono text-sm">{invoice.number}</span>
+                    <span className="text-sm text-muted-foreground">{formatDate(invoice.issue_date, { month: "short" })}</span>
+                    <span className="ml-auto text-sm font-medium tabular-nums">{formatMoney(invoice.total, invoice.currency)}</span>
+                    <StatusPill status={invoice.display_status} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">No invoices for this client yet.</p>
+          )}
         </DetailCard>
         {client.notes && (
           <DetailCard title="Notes" className="lg:col-span-3">
