@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\WorkspaceStatus;
+use Database\Factories\WorkspaceFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
+/**
+ * @property WorkspaceStatus $status
+ * @property-read WorkspaceMembership|null $membership Set when loaded through User::workspaces().
+ */
+class Workspace extends Model
+{
+    /** @use HasFactory<WorkspaceFactory> */
+    use HasFactory;
+
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'owner_id',
+        'plan_id',
+        'status',
+        'suspended_at',
+    ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => WorkspaceStatus::class,
+            'suspended_at' => 'datetime',
+        ];
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === WorkspaceStatus::Active;
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /**
+     * @return BelongsTo<Plan, $this>
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+    /**
+     * @return BelongsToMany<User, $this, WorkspaceMembership, 'membership'>
+     */
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'workspace_user')
+            ->using(WorkspaceMembership::class)
+            ->as('membership')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<BusinessProfile, $this>
+     */
+    public function businessProfiles(): HasMany
+    {
+        return $this->hasMany(BusinessProfile::class);
+    }
+
+    /**
+     * @return HasOne<BusinessProfile, $this>
+     */
+    public function defaultBusinessProfile(): HasOne
+    {
+        return $this->hasOne(BusinessProfile::class)->where('is_default', true);
+    }
+
+    /**
+     * @return HasMany<Client, $this>
+     */
+    public function clients(): HasMany
+    {
+        return $this->hasMany(Client::class);
+    }
+}
