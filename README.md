@@ -35,8 +35,9 @@ Settings worth knowing in `backend/.env`:
 
 | Setting | Purpose |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | Enables AI invoice drafts (Claude). Without it, invoices are created by hand. |
-| `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT` | Default `claude-opus-5-5`, `low` |
+| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY` | Keys for the AI providers you want available. Without any, invoices are created by hand. |
+| `AI_CUSTOM_BASE_URL`, `AI_CUSTOM_API_KEY`, `AI_CUSTOM_MODEL` | Any other OpenAI-compatible API (Groq, Mistral, DeepSeek, xAI, Ollama) |
+| `AI_PROVIDER`, `AI_FALLBACK_PROVIDER`, `*_MODEL` | Defaults until a platform admin chooses at `/admin/ai` |
 | `MAIL_MAILER`, `MAIL_FROM_ADDRESS` | `log` writes emails to `storage/logs/laravel.log` locally |
 | `QUEUE_CONNECTION` | `sync` sends email immediately (local); use `database` or `redis` with `php artisan queue:work` in production |
 | `FRONTEND_URL` | Where email links (reset, verify, invoice view) point |

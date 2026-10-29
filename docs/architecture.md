@@ -45,19 +45,27 @@ Browser ──> Next.js (frontend/)  ──Bearer token──>  Laravel API (bac
 - Numbers: profile `invoice_prefix` + zero-padded `next_invoice_number`, claimed under a row lock.
 - Plan limit: `plans.monthly_invoice_limit`, counted with deleted drafts included.
 
-### AI drafts
+### AI drafts (multi-provider)
 
 ```
-prompt ─> InvoiceGenerationController ─> InvoiceDraftService ─> InvoiceDraftExtractor (Claude) ─> raw fields
-                                               │                                                    │
-                                               └── checks, clamps, matches client, calculator <─────┘
+prompt ─> InvoiceGenerationController ─> InvoiceDraftService ─> AiRouter ─> active provider ──(down?)──> fallback provider
+                                               │                                   │
+                                               └── checks, clamps, matches client, calculator <── raw fields
                                                    └─> unsaved draft ─> frontend editor ─> owner saves
 ```
 
-- `ClaudeInvoiceDraftExtractor` calls `claude-opus-5-5` through the official PHP SDK (`anthropic-ai/sdk`), with a closed JSON schema (`output_config.format`) so the reply always parses, `effort: low`, and `fallbacks: "default"` for refusals.
-- The system prompt is fixed; the business defaults and client list go in the user message as data, the owner's words inside `<description>`.
-- Config: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT` (`config/services.php`). Without a key the endpoint answers 503 and the editor still works by hand.
-- Every call is logged in `ai_generations` (tokens, duration, outcome). Rate limit `ai`: 10/min, 200/day per workspace.
+| Provider id | Driver | Connects to |
+| --- | --- | --- |
+| `anthropic` | `AnthropicExtractor` | Claude via the official PHP SDK: structured outputs, `effort`, server-side refusal fallback |
+| `openai` | `OpenAiCompatibleExtractor` | OpenAI Chat Completions with a strict JSON schema |
+| `gemini` | `GeminiExtractor` | Google Gemini `generateContent` with `responseJsonSchema` |
+| `openrouter` | `OpenAiCompatibleExtractor` | OpenRouter: Llama, Mistral, DeepSeek, Qwen and more with one key |
+| `custom` | `OpenAiCompatibleExtractor` | Any OpenAI-compatible API (Groq, Mistral, DeepSeek, xAI, Ollama); `AI_CUSTOM_JSON_MODE=object` for APIs without JSON schemas |
+
+- All providers get the same instructions and schema (`DraftPrompt`). Whatever comes back is checked by `InvoiceDraftService`, so switching provider cannot change how totals are worked out.
+- Keys and default models live in `config/ai.php` (from `.env`). Platform admins choose the active provider, model and fallback at `/admin/ai`; the choice is stored in `platform_settings`. Keys are never stored in the database or sent to the browser.
+- `AiRouter` falls back when the active provider is not configured, rejects its key, is rate limited, down, or rejects the request (e.g. an unknown model). A refusal or a malformed draft is not retried elsewhere.
+- Every call is logged in `ai_generations` with its provider, model, tokens, duration and outcome; the admin page shows 30-day usage per provider and can test-run any provider.
 
 ### Email, public links, verification
 
@@ -90,4 +98,4 @@ prompt ─> InvoiceGenerationController ─> InvoiceDraftService ─> InvoiceDra
 | Clients | `GET /v1/clients/options`, `/v1/clients` (REST) |
 | Invoices | `GET /v1/invoices/defaults`, `POST /v1/invoices/generate`, `/v1/invoices` (REST), `POST /v1/invoices/{id}/{send,email,mark-paid,mark-unpaid,void,duplicate}`, `GET /v1/invoices/{id}/pdf` |
 | Public | `GET /v1/public/invoices/{token}`, `GET /v1/public/invoices/{token}/pdf` |
-| Admin | `GET /v1/admin/dashboard`, `/v1/admin/workspaces` (+ `suspend`, `activate`, `plan`), `/v1/admin/users` (+ `activate`, `deactivate`), `/v1/admin/plans` (REST) |
+| Admin | `GET/PUT /v1/admin/ai`, `POST /v1/admin/ai/test`, `GET /v1/admin/dashboard`, `/v1/admin/workspaces` (+ `suspend`, `activate`, `plan`), `/v1/admin/users` (+ `activate`, `deactivate`), `/v1/admin/plans` (REST) |

@@ -62,6 +62,7 @@ Backend
 - [x] Public link per invoice (`/i/{token}`), PDF by token, first view recorded; drafts not public
 - [x] Email verification on sign-up (signed link to the frontend), resend; sending invoices requires a verified address
 - [x] Each throttled endpoint has its own rate-limit bucket
+- [x] Multiple AI providers: Claude, OpenAI, Gemini, OpenRouter and any OpenAI-compatible API, one shared prompt and schema, automatic fallback, admin page to choose provider/model/fallback, per-provider usage and test runs
 - [ ] Google sign-in: needs the client's Google OAuth credentials (moved to Phase 4)
 
 Frontend
