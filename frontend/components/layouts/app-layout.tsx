@@ -3,6 +3,7 @@ import { SidebarInset, SidebarProvider } from "../ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
 import PageHeader, { type PageHeaderProps } from "./page-header";
 import { auth } from "@/auth";
+import { VerifyEmailBanner } from "./verify-email-banner";
 
 interface AppLayoutProps extends PageHeaderProps {
   children: React.ReactNode;
@@ -37,6 +38,7 @@ export default async function AppLayout({
     >
       <AppSidebar variant="floating" user={session?.user} />
       <SidebarInset className="gap-4 bg-transparent p-2 md:pl-0">
+        {session?.user && !session.user.isAdmin && session.user.isVerified === false && <VerifyEmailBanner email={session.user.email} />}
         <PageHeader breadcrumbs={breadcrumbs} {...header} />
         {/* No padding of its own: the gutter is SidebarInset's, so the page
             content lines up with the header card's edges. */}

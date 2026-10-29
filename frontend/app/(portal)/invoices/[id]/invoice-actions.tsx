@@ -7,6 +7,8 @@ import {
   Delete02Icon,
   Download04Icon,
   Edit03Icon,
+  Link01Icon,
+  Mail01Icon,
   MoreHorizontalIcon,
   SentIcon,
   Undo02Icon,
@@ -36,10 +38,12 @@ import { Invoice } from "@/types/api";
 import { ValidationError } from "@/types/global";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { EmailDialog } from "./email-dialog";
 
-type Pending = "void" | "delete" | "paid" | null;
+type Pending = "void" | "delete" | "paid" | "email" | null;
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -48,6 +52,8 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
   const [loading, setLoading] = useState(false);
   const [paidOn, setPaidOn] = useState(today);
   const router = useRouter();
+  const { data: session } = useSession();
+  const verified = session?.user?.isVerified !== false;
 
   const editable = invoice.status === "draft" || invoice.status === "sent";
 
@@ -76,10 +82,15 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {invoice.status === "draft" && (
-        <Button disabled={loading} onClick={() => run(() => markInvoiceSent(invoice.id), "Marked as sent")}>
-          <Icon icon={SentIcon} />
-          Mark as sent
+      {invoice.status !== "void" && (
+        <Button
+          variant={invoice.status === "draft" ? "default" : "outline"}
+          disabled={loading}
+          title={verified ? undefined : "Verify your email address first"}
+          onClick={() => (verified ? setPending("email") : toast.error("Verify your email address before sending invoices. Use the banner at the top to resend the link."))}
+        >
+          <Icon icon={Mail01Icon} />
+          {invoice.status === "draft" ? "Send" : "Email"}
         </Button>
       )}
       {editable && invoice.status !== "draft" && (
@@ -106,9 +117,30 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
         <DropdownMenuContent align="end" className="min-w-48">
           <DropdownMenuGroup>
             {invoice.status === "draft" && (
-              <DropdownMenuItem onClick={() => setPending("paid")}>
-                <Icon icon={CheckmarkCircle02Icon} />
-                Record payment
+              <>
+                <DropdownMenuItem onClick={() => run(() => markInvoiceSent(invoice.id), "Marked as sent")}>
+                  <Icon icon={SentIcon} />
+                  Mark as sent (sent another way)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setPending("paid")}>
+                  <Icon icon={CheckmarkCircle02Icon} />
+                  Record payment
+                </DropdownMenuItem>
+              </>
+            )}
+            {invoice.status !== "draft" && invoice.public_url && (
+              <DropdownMenuItem
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(invoice.public_url ?? "");
+                    toast.success("Link copied. Anyone with it can view this invoice.");
+                  } catch {
+                    toast.error("Could not copy the link.");
+                  }
+                }}
+              >
+                <Icon icon={Link01Icon} />
+                Copy client link
               </DropdownMenuItem>
             )}
             {invoice.status === "paid" && (
@@ -158,6 +190,7 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {pending === "email" && <EmailDialog invoice={invoice} open onOpenChange={(open) => !open && setPending(null)} />}
       {pending === "paid" && (
         <ConfirmationModal
           loading={loading}

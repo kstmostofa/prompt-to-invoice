@@ -38,10 +38,21 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             <div className="grid gap-4">
               <LabeledItem label="Created" value={formatDate(invoice.created_at)} />
               <LabeledItem label="Sent" value={invoice.sent_at ? formatDate(invoice.sent_at) : "Not yet"} />
+              {invoice.emailed_at && (
+                <LabeledItem label="Last emailed" value={`${formatDate(invoice.emailed_at)} to ${invoice.last_emailed_to}`} />
+              )}
+              {invoice.status !== "draft" && (
+                <LabeledItem label="Viewed by client" value={invoice.viewed_at ? formatDate(invoice.viewed_at) : "Not yet"} />
+              )}
               {invoice.paid_at && <LabeledItem label="Paid" value={formatDate(invoice.paid_at)} />}
               {invoice.voided_at && <LabeledItem label="Voided" value={formatDate(invoice.voided_at)} />}
             </div>
           </DetailCard>
+          {invoice.source_prompt && (
+            <DetailCard title="Drafted from">
+              <p className="text-sm italic text-muted-foreground">&ldquo;{invoice.source_prompt}&rdquo;</p>
+            </DetailCard>
+          )}
           {invoice.client && (
             <DetailCard title="Client">
               <Link href={`/clients/${invoice.client.id}`} className="block hover:text-primary">

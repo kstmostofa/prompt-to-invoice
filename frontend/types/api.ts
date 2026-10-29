@@ -177,7 +177,12 @@ export interface Invoice {
   notes: string | null;
   footer: string | null;
   source_prompt: string | null;
+  /** The client's view link (no sign-in); works once the invoice is sent. */
+  public_url?: string;
   sent_at: string | null;
+  emailed_at?: string | null;
+  last_emailed_to?: string | null;
+  viewed_at?: string | null;
   paid_at: string | null;
   voided_at: string | null;
   created_at: string;
@@ -197,6 +202,32 @@ export interface InvoicePayload {
   footer: string | null;
   source_prompt?: string | null;
   items: { description: string; quantity: number; unit: string | null; unit_price: number }[];
+}
+
+/** What AI generation returns: an unsaved draft for the editor. */
+export interface InvoiceDraft {
+  client_id: number | null;
+  suggested_client: { name: string | null; company: string | null; email: string | null } | null;
+  currency: Currency;
+  issue_date: string;
+  due_date: string;
+  discount_type: DiscountType | null;
+  discount_value: number | null;
+  tax_rate: number;
+  reverse_charge: boolean;
+  notes: string | null;
+  footer: string | null;
+  items: { description: string; quantity: number; unit: string | null; unit_price: number }[];
+  totals: { subtotal: string; discount_total: string; tax_total: string; total: string };
+  warnings: string[];
+  source_prompt: string;
+}
+
+export interface EmailInvoicePayload {
+  to: string;
+  cc: string[];
+  subject: string;
+  message: string;
 }
 
 export interface InvoiceUsage {

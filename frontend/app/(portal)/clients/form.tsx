@@ -71,11 +71,11 @@ function toPayload(data: ClientFormData): ClientPayload {
   };
 }
 
-function toFormData(client?: Client | null): ClientFormData {
+function toFormData(client?: Client | null, initial?: Partial<ClientPayload>): ClientFormData {
   return {
-    name: client?.name ?? "",
-    company: client?.company ?? "",
-    email: client?.email ?? "",
+    name: client?.name ?? initial?.name ?? "",
+    company: client?.company ?? initial?.company ?? "",
+    email: client?.email ?? initial?.email ?? "",
     phone: client?.phone ?? "",
     address_line1: client?.address_line1 ?? "",
     address_line2: client?.address_line2 ?? "",
@@ -98,9 +98,11 @@ interface ClientFormProps {
   client?: Client | null;
   /** Called with the saved client, e.g. to select a client just added from the invoice editor. */
   onSaved?: (client: Client) => void;
+  /** Prefill for a new client, e.g. the one an AI draft suggests. */
+  initial?: Partial<ClientPayload>;
 }
 
-export function ClientForm({ trigger, client, onSaved }: ClientFormProps) {
+export function ClientForm({ trigger, client, onSaved, initial }: ClientFormProps) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -115,7 +117,7 @@ export function ClientForm({ trigger, client, onSaved }: ClientFormProps) {
     formState: { errors },
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
-    defaultValues: toFormData(client),
+    defaultValues: toFormData(client, initial),
   });
 
   const onSubmit = async (data: ClientFormData) => {
@@ -133,7 +135,7 @@ export function ClientForm({ trigger, client, onSaved }: ClientFormProps) {
       toast.success(`Client ${client ? "updated" : "created"}`);
       onSaved?.((response as { data: Client }).data);
       setOpen(false);
-      if (!client) reset(toFormData());
+      if (!client) reset(toFormData(null, initial));
       router.refresh();
     } catch {
       toast.error("Failed to save the client. Please try again.");
@@ -152,7 +154,7 @@ export function ClientForm({ trigger, client, onSaved }: ClientFormProps) {
       open={open}
       onOpenChange={(value) => {
         setOpen(value);
-        if (!value) reset(toFormData(client));
+        if (!value) reset(toFormData(client, initial));
       }}
     >
       <DrawerTrigger render={trigger} />

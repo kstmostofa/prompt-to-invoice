@@ -1,5 +1,6 @@
 import "server-only";
 import { auth } from "../auth";
+import { redirect } from "next/navigation";
 import { BASE_API_URL } from "./api-urls";
 import { clientIpHeaders } from "./client-ip";
 
@@ -46,7 +47,8 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      if (response.status === 401) throw new Error("Unauthorized");
+      // The token is no longer valid: sign out rather than show a broken page.
+      if (response.status === 401) redirect("/session-expired");
       if (response.status === 403) {
         const body = await response.clone().json().catch(() => ({}));
         throw new Error(body?.message || "Forbidden");

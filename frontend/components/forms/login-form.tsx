@@ -26,6 +26,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const expired = searchParams.get("expired") === "1";
 
   const {
     register,
@@ -64,6 +65,9 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit(onSubmit)}>
       <DetailCard title="Sign in">
         <div className="space-y-5">
+          {expired && (
+            <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">Your session ended. Please sign in again.</p>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input

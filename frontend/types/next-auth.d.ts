@@ -8,6 +8,8 @@ interface SessionUser {
   email: string;
   /** Platform staff: the admin portal, never a workspace's data. */
   isAdmin: boolean;
+  /** Sending invoices by email needs a verified address. */
+  isVerified: boolean;
   /** Their role in their current workspace: owner, admin or member. */
   role: string;
   workspaceId: number | null;

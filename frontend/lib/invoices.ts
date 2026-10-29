@@ -1,12 +1,14 @@
 "use server";
 
-import { ClientOption, Invoice, InvoiceDefaults, InvoicePayload } from "@/types/api";
+import { ClientOption, EmailInvoicePayload, Invoice, InvoiceDefaults, InvoiceDraft, InvoicePayload } from "@/types/api";
 import { PaginatedData, SearchParams, ValidationError } from "@/types/global";
 import { FetchApi } from "./api";
 import {
   CREATE_INVOICE,
   DELETE_INVOICE,
   DUPLICATE_INVOICE,
+  EMAIL_INVOICE,
+  GENERATE_INVOICE,
   GET_CLIENT_OPTIONS,
   GET_INVOICE,
   GET_INVOICE_DEFAULTS,
@@ -68,4 +70,29 @@ export const voidInvoice = async (id: number): Promise<Saved> => {
 
 export const duplicateInvoice = async (id: number): Promise<Saved> => {
   return FetchApi.post(DUPLICATE_INVOICE(id));
+};
+
+export type DraftResult = { success: true; data: InvoiceDraft } | { success: false; message: string };
+
+/**
+ * An AI draft from a description of the work. Never throws: server action
+ * errors are masked in production, so failures come back as a message.
+ */
+export const generateInvoiceDraft = async (prompt: string): Promise<DraftResult> => {
+  try {
+    const response = await FetchApi.post<{ data: InvoiceDraft } | ValidationError>(GENERATE_INVOICE, { prompt });
+    if ("errors" in response) {
+      return { success: false, message: Object.values(response.errors).flat()[0] ?? response.message };
+    }
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error && error.message ? error.message : "AI generation is not available right now.",
+    };
+  }
+};
+
+export const emailInvoice = async (id: number, data: EmailInvoicePayload): Promise<Saved> => {
+  return FetchApi.post(EMAIL_INVOICE(id), data);
 };

@@ -10,8 +10,14 @@ export const proxy = auth((req) => {
   const { pathname } = req.nextUrl;
   const user = req.auth?.user as AccessUser | undefined;
 
-  // A reset link can be opened by anyone, signed in or not.
-  if (pathname.startsWith("/forgot-password") || pathname.startsWith("/reset-password")) {
+  // Email links and the client's invoice view work for anyone, signed in or not.
+  if (
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/verify-email") ||
+    pathname.startsWith("/session-expired") ||
+    pathname.startsWith("/i/")
+  ) {
     return NextResponse.next();
   }
 

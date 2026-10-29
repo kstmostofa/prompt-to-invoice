@@ -2,6 +2,10 @@ export const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL || "https://prompt-t
 
 // PUBLIC ROUTES (absolute, unauthenticated)
 export const PUBLIC_PLANS_URL = `${BASE_API_URL}/plans`;
+export const PUBLIC_INVOICE_URL = (token: string) => `${BASE_API_URL}/public/invoices/${encodeURIComponent(token)}`;
+export const PUBLIC_INVOICE_PDF_URL = (token: string) => `${BASE_API_URL}/public/invoices/${encodeURIComponent(token)}/pdf`;
+export const VERIFY_EMAIL_URL = (id: string, hash: string) =>
+  `${BASE_API_URL}/auth/verify-email/${encodeURIComponent(id)}/${encodeURIComponent(hash)}`;
 
 // AUTH ROUTES (absolute — used outside the FetchApi client too)
 export const LOGIN_URL = `${BASE_API_URL}/auth/login`;
@@ -12,6 +16,7 @@ export const UPDATE_PROFILE = "/auth/user";
 export const FORGOT_PASSWORD = "/auth/forgot-password";
 export const RESET_PASSWORD = "/auth/reset-password";
 export const CHANGE_PASSWORD = "/auth/user/password";
+export const RESEND_VERIFICATION = "/auth/email/verification-notification";
 
 // WORKSPACE (scoped to the signed-in user's current workspace)
 export const GET_DASHBOARD = "/dashboard";
@@ -32,6 +37,8 @@ export const DELETE_CLIENT = (id: number) => `/clients/${id}`;
 
 export const GET_INVOICES = "/invoices";
 export const GET_INVOICE_DEFAULTS = "/invoices/defaults";
+export const GENERATE_INVOICE = "/invoices/generate";
+export const EMAIL_INVOICE = (id: number) => `/invoices/${id}/email`;
 export const CREATE_INVOICE = "/invoices";
 export const GET_INVOICE = (id: number) => `/invoices/${id}`;
 export const UPDATE_INVOICE = (id: number) => `/invoices/${id}`;

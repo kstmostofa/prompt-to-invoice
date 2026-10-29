@@ -2,6 +2,7 @@ import { ArrowRight01Icon, DashboardSquare01Icon, Invoice01Icon, PlusSignIcon } 
 import Link from "next/link";
 import { auth } from "@/auth";
 import { TrendChart } from "@/components/charts/trend-chart";
+import { DashboardPrompt } from "@/components/invoice/dashboard-prompt";
 import AppLayout from "@/components/layouts/app-layout";
 import { CardEmpty } from "@/components/shared/card-empty";
 import { DetailCard, StatusPill } from "@/components/shared/detail-card";
@@ -39,6 +40,7 @@ export default async function DashboardPage() {
       }
     >
       <div className="flex flex-1 flex-col gap-4">
+        <DashboardPrompt />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Outstanding"

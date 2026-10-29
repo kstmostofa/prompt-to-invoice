@@ -15,9 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { applyFieldErrors } from "@/lib/form-errors";
 import { formatMoney } from "@/lib/helper";
 import { createInvoice, updateInvoice } from "@/lib/invoices";
-import type { ClientOption, Invoice, InvoiceDefaults, InvoicePayload } from "@/types/api";
+import type { ClientOption, Invoice, InvoiceDefaults, InvoiceDraft, InvoicePayload } from "@/types/api";
 import { ValidationError } from "@/types/global";
-import { Delete02Icon, PlusSignIcon, UserAdd01Icon } from "@hugeicons/core-free-icons";
+import { Alert02Icon, Delete02Icon, PlusSignIcon, SparklesIcon, UserAdd01Icon } from "@hugeicons/core-free-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -78,7 +78,28 @@ const FIELDS = [
 
 const emptyLine = { description: "", quantity: "1", unit: "", unit_price: "" };
 
-function initialValues(defaults: InvoiceDefaults, invoice?: Invoice | null): EditorData {
+function initialValues(defaults: InvoiceDefaults, invoice?: Invoice | null, draft?: InvoiceDraft | null): EditorData {
+  if (draft) {
+    return {
+      client_id: draft.client_id ? String(draft.client_id) : "",
+      issue_date: draft.issue_date,
+      due_date: draft.due_date,
+      currency: draft.currency,
+      discount_type: draft.discount_type ?? "none",
+      discount_value: draft.discount_value !== null ? String(draft.discount_value) : "",
+      tax_rate: String(draft.tax_rate),
+      reverse_charge: draft.reverse_charge,
+      notes: draft.notes ?? "",
+      footer: draft.footer ?? defaults.footer ?? "",
+      items: draft.items.map((item) => ({
+        description: item.description,
+        quantity: String(item.quantity),
+        unit: item.unit ?? "",
+        unit_price: String(item.unit_price),
+      })),
+    };
+  }
+
   if (invoice) {
     return {
       client_id: invoice.client_id ? String(invoice.client_id) : "",
@@ -125,13 +146,15 @@ interface InvoiceEditorProps {
   defaults: InvoiceDefaults;
   clients: ClientOption[];
   invoice?: Invoice | null;
+  /** An unsaved AI draft to start from. */
+  draft?: InvoiceDraft | null;
 }
 
 /**
  * Create or edit an invoice. Totals update as you type, using the same
  * rounding as the API; the API recalculates on save and its numbers count.
  */
-export function InvoiceEditor({ defaults, clients: initialClients, invoice }: InvoiceEditorProps) {
+export function InvoiceEditor({ defaults, clients: initialClients, invoice, draft }: InvoiceEditorProps) {
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState(initialClients);
   const router = useRouter();
@@ -146,7 +169,7 @@ export function InvoiceEditor({ defaults, clients: initialClients, invoice }: In
     formState: { errors },
   } = useForm<EditorData>({
     resolver: zodResolver(editorSchema),
-    defaultValues: initialValues(defaults, invoice),
+    defaultValues: initialValues(defaults, invoice, draft),
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
@@ -184,6 +207,7 @@ export function InvoiceEditor({ defaults, clients: initialClients, invoice }: In
       reverse_charge: data.reverse_charge,
       notes: data.notes.trim() || null,
       footer: data.footer.trim() || null,
+      source_prompt: draft?.source_prompt ?? invoice?.source_prompt ?? null,
       items: data.items.map((item) => ({
         description: item.description.trim(),
         quantity: Number(item.quantity),
@@ -225,6 +249,25 @@ export function InvoiceEditor({ defaults, clients: initialClients, invoice }: In
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 xl:grid-cols-[1fr_20rem]">
       <div className="grid min-w-0 gap-4">
+        {draft && (
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm">
+            <div className="flex items-center gap-2 font-medium">
+              <Icon icon={SparklesIcon} className="size-4 text-primary" />
+              Drafted from your description. Check it, then save.
+            </div>
+            <p className="mt-1 line-clamp-2 text-muted-foreground">&ldquo;{draft.source_prompt}&rdquo;</p>
+            {draft.warnings.length > 0 && (
+              <ul className="mt-3 grid gap-1.5">
+                {draft.warnings.map((warning) => (
+                  <li key={warning} className="flex items-start gap-2 text-amber-700 dark:text-amber-400">
+                    <Icon icon={Alert02Icon} className="mt-0.5 size-4 shrink-0" />
+                    {warning}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
         <DetailCard title="Bill to">
           <div className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-start">
             <div className="space-y-2">
@@ -234,6 +277,15 @@ export function InvoiceEditor({ defaults, clients: initialClients, invoice }: In
                 render={({ field }) => <SelectInput title="Search clients..." options={clientOptions} value={field.value} onValueChange={chooseClient} />}
               />
               <InputError message={errors.client_id?.message} />
+              {draft?.suggested_client && !clients.some((client) => client.name === draft.suggested_client?.name) && (
+                <p className="text-sm text-muted-foreground">
+                  New client in the description:{" "}
+                  <span className="font-medium text-foreground">
+                    {[draft.suggested_client.name, draft.suggested_client.company].filter(Boolean).join(", ")}
+                  </span>
+                  . Use <span className="font-medium">New client</span> to add them, already filled in.
+                </p>
+              )}
             </div>
             <ClientForm
               trigger={
@@ -241,6 +293,15 @@ export function InvoiceEditor({ defaults, clients: initialClients, invoice }: In
                   <Icon icon={UserAdd01Icon} />
                   New client
                 </Button>
+              }
+              initial={
+                draft?.suggested_client
+                  ? {
+                      name: draft.suggested_client.name ?? undefined,
+                      company: draft.suggested_client.company,
+                      email: draft.suggested_client.email,
+                    }
+                  : undefined
               }
               onSaved={(client) => {
                 setClients((current) => [...current, { id: client.id, name: client.name, company: client.company, email: client.email, currency: client.currency }]);
