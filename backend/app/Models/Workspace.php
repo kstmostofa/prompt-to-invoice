@@ -93,6 +93,14 @@ class Workspace extends Model
     }
 
     /**
+     * @return HasMany<Invoice, $this>
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
      * @return HasMany<Client, $this>
      */
     public function clients(): HasMany

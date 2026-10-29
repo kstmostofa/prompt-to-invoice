@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Workspace\BusinessProfileController;
 use App\Http\Controllers\Workspace\ClientController;
 use App\Http\Controllers\Workspace\DashboardController;
+use App\Http\Controllers\Workspace\InvoiceController;
 use App\Http\Controllers\Workspace\WorkspaceController;
 use App\Http\Resources\PlanResource;
 use App\Models\Plan;
@@ -56,6 +57,17 @@ Route::prefix('v1')->group(function (): void {
 
             Route::get('/clients/options', [ClientController::class, 'options']);
             Route::apiResource('clients', ClientController::class);
+
+            Route::get('/invoices/defaults', [InvoiceController::class, 'defaults']);
+            Route::apiResource('invoices', InvoiceController::class);
+            Route::prefix('/invoices/{invoice}')->controller(InvoiceController::class)->group(function (): void {
+                Route::post('/send', 'markSent');
+                Route::post('/mark-paid', 'markPaid');
+                Route::post('/mark-unpaid', 'markUnpaid');
+                Route::post('/void', 'void');
+                Route::post('/duplicate', 'duplicate');
+                Route::get('/pdf', 'pdf');
+            });
 
             Route::get('/business-profile', [BusinessProfileController::class, 'show']);
 
