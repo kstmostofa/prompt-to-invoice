@@ -1,0 +1,49 @@
+export const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL || "https://prompt-to-invoice-api.test/v1";
+
+// PUBLIC ROUTES (absolute, unauthenticated)
+export const PUBLIC_PLANS_URL = `${BASE_API_URL}/plans`;
+
+// AUTH ROUTES (absolute — used outside the FetchApi client too)
+export const LOGIN_URL = `${BASE_API_URL}/auth/login`;
+export const REGISTER_URL = `${BASE_API_URL}/auth/register`;
+export const LOGOUT_URL = `${BASE_API_URL}/auth/logout`;
+export const PROFILE_URL = "/auth/user";
+export const UPDATE_PROFILE = "/auth/user";
+export const FORGOT_PASSWORD = "/auth/forgot-password";
+export const RESET_PASSWORD = "/auth/reset-password";
+export const CHANGE_PASSWORD = "/auth/user/password";
+
+// WORKSPACE (scoped to the signed-in user's current workspace)
+export const GET_DASHBOARD = "/dashboard";
+export const GET_WORKSPACE = "/workspace";
+export const UPDATE_WORKSPACE = "/workspace";
+export const SWITCH_WORKSPACE = (id: number) => `/workspaces/${id}/switch`;
+
+export const GET_BUSINESS_PROFILE = "/business-profile";
+export const UPDATE_BUSINESS_PROFILE = "/business-profile";
+export const BUSINESS_PROFILE_LOGO = "/business-profile/logo";
+
+export const GET_CLIENTS = "/clients";
+export const GET_CLIENT_OPTIONS = "/clients/options";
+export const CREATE_CLIENT = "/clients";
+export const GET_CLIENT = (id: number) => `/clients/${id}`;
+export const UPDATE_CLIENT = (id: number) => `/clients/${id}`;
+export const DELETE_CLIENT = (id: number) => `/clients/${id}`;
+
+// PLATFORM ADMIN
+export const GET_ADMIN_DASHBOARD = "/admin/dashboard";
+
+export const GET_ADMIN_WORKSPACES = "/admin/workspaces";
+export const GET_ADMIN_WORKSPACE = (id: number) => `/admin/workspaces/${id}`;
+export const SUSPEND_WORKSPACE = (id: number) => `/admin/workspaces/${id}/suspend`;
+export const ACTIVATE_WORKSPACE = (id: number) => `/admin/workspaces/${id}/activate`;
+export const CHANGE_WORKSPACE_PLAN = (id: number) => `/admin/workspaces/${id}/plan`;
+
+export const GET_ADMIN_USERS = "/admin/users";
+export const ACTIVATE_USER = (id: number) => `/admin/users/${id}/activate`;
+export const DEACTIVATE_USER = (id: number) => `/admin/users/${id}/deactivate`;
+
+export const GET_PLANS = "/admin/plans";
+export const CREATE_PLAN = "/admin/plans";
+export const UPDATE_PLAN = (id: number) => `/admin/plans/${id}`;
+export const DELETE_PLAN = (id: number) => `/admin/plans/${id}`;

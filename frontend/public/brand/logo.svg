@@ -1,0 +1,11 @@
+<svg width="470" height="84" viewBox="0 0 470 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="2" y="2" width="80" height="80" rx="22" fill="url(#pti_logo_bg)"/>
+<path d="M27 20H48L60 32V62C60 64.2 58.2 66 56 66H27C24.8 66 23 64.2 23 62V24C23 21.8 24.8 20 27 20Z" fill="white" fill-opacity="0.95"/>
+<path d="M48 20V30C48 31.1 48.9 32 50 32H60" fill="#C7D2FE"/>
+<path d="M31 43H52M31 51H46M31 59H40" stroke="#4F46E5" stroke-width="4" stroke-linecap="round"/>
+<path d="M66 12L68.4 18.6L75 21L68.4 23.4L66 30L63.6 23.4L57 21L63.6 18.6L66 12Z" fill="#FDE68A"/>
+<text x="100" y="58" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="-1" fill="#4F46E5">Prompt<tspan fill="#6366F1" font-weight="500">To</tspan>Invoice</text>
+<defs>
+<linearGradient id="pti_logo_bg" x1="2" y1="2" x2="82" y2="82" gradientUnits="userSpaceOnUse"><stop stop-color="#6366F1"/><stop offset="1" stop-color="#3730A3"/></linearGradient>
+</defs>
+</svg>
