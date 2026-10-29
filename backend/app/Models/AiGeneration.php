@@ -22,6 +22,7 @@ class AiGeneration extends Model
         'workspace_id',
         'user_id',
         'prompt',
+        'provider',
         'model',
         'status',
         'input_tokens',

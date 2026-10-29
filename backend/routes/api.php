@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PlanController as AdminPlanController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -106,6 +107,10 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/users', [AdminUserController::class, 'index']);
             Route::post('/users/{user}/activate', [AdminUserController::class, 'activate']);
             Route::post('/users/{user}/deactivate', [AdminUserController::class, 'deactivate']);
+
+            Route::get('/ai', [AiSettingsController::class, 'show']);
+            Route::put('/ai', [AiSettingsController::class, 'update']);
+            Route::post('/ai/test', [AiSettingsController::class, 'test'])->middleware('throttle:10,1,ai-test');
 
             Route::apiResource('plans', AdminPlanController::class)->except('show')->names('admin.plans');
         });

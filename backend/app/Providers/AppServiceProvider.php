@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
-use App\Services\Ai\ClaudeInvoiceDraftExtractor;
+use App\Services\Ai\AiRouter;
 use App\Services\Ai\InvoiceDraftExtractor;
 use App\Support\CurrentWorkspace;
 use Carbon\CarbonImmutable;
@@ -27,12 +27,8 @@ class AppServiceProvider extends ServiceProvider
         // Scoped, not singleton: reset between requests under Octane and queue jobs.
         $this->app->scoped(CurrentWorkspace::class);
 
-        $this->app->bind(InvoiceDraftExtractor::class, fn (): ClaudeInvoiceDraftExtractor => new ClaudeInvoiceDraftExtractor(
-            apiKey: config('services.anthropic.key'),
-            model: (string) config('services.anthropic.model'),
-            effort: (string) config('services.anthropic.effort'),
-            timeout: (float) config('services.anthropic.timeout'),
-        ));
+        // The active provider, with fallback; chosen in the admin portal.
+        $this->app->bind(InvoiceDraftExtractor::class, AiRouter::class);
     }
 
     /**

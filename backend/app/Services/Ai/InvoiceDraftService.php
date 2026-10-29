@@ -28,6 +28,7 @@ class InvoiceDraftService
 
     public function __construct(
         private InvoiceDraftExtractor $extractor,
+        private AiProviders $providers,
         private InvoiceCalculator $calculator,
         private CurrentWorkspace $current,
     ) {}
@@ -51,10 +52,12 @@ class InvoiceDraftService
         $clients = Client::query()->orderByDesc('updated_at')->limit(self::MAX_CLIENTS_IN_CONTEXT)->get(['id', 'name', 'company', 'email', 'currency']);
 
         $started = hrtime(true);
+        $settings = $this->providers->settings();
         $log = [
             'user_id' => $user->id,
             'prompt' => $prompt,
-            'model' => (string) config('services.anthropic.model'),
+            'provider' => $settings['provider'],
+            'model' => $settings['model'] ?? (string) config("ai.providers.{$settings['provider']}.model", ''),
         ];
 
         try {
@@ -77,6 +80,7 @@ class InvoiceDraftService
 
         AiGeneration::query()->create([
             ...$log,
+            'provider' => $result->provider,
             'model' => $result->model,
             'status' => AiGeneration::STATUS_SUCCEEDED,
             'input_tokens' => $result->inputTokens,

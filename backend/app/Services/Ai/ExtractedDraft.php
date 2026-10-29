@@ -13,6 +13,7 @@ final readonly class ExtractedDraft
     public function __construct(
         public array $data,
         public string $model,
+        public string $provider = 'anthropic',
         public int $inputTokens = 0,
         public int $outputTokens = 0,
     ) {}

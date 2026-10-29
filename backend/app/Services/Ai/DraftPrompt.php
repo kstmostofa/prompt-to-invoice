@@ -2,21 +2,14 @@
 
 namespace App\Services\Ai;
 
-use Anthropic\Client;
-use Anthropic\Core\Exceptions\APIConnectionException;
-use Anthropic\Core\Exceptions\APIStatusException;
-use Anthropic\Core\Exceptions\AuthenticationException;
-use Anthropic\Core\Exceptions\RateLimitException;
-use Illuminate\Support\Facades\Log;
-
 /**
- * Claude with structured outputs: the response is constrained to SCHEMA, so
- * it always parses. Refusals fall back server-side to Anthropic's default
- * substitute model before they reach us.
+ * The instructions and output schema every provider gets, so drafts read the
+ * same whichever model is active. InvoiceDraftService checks whatever comes
+ * back; the schema only makes it well-formed.
  */
-class ClaudeInvoiceDraftExtractor implements InvoiceDraftExtractor
+final class DraftPrompt
 {
-    private const SYSTEM = <<<'PROMPT'
+    public const SYSTEM = <<<'PROMPT'
 You turn a freelancer's or small business's description of work into the fields of an invoice draft. The owner reviews the draft before anything is saved or sent.
 
 Rules:
@@ -38,7 +31,7 @@ PROMPT;
      * Every field required, nullable where absent: structured outputs need
      * a closed schema.
      */
-    private const SCHEMA = [
+    public const SCHEMA = [
         'type' => 'object',
         'additionalProperties' => false,
         'required' => ['client', 'currency', 'issue_date', 'due_date', 'items', 'discount_type', 'discount_value', 'tax_rate', 'notes', 'warnings'],
@@ -79,70 +72,24 @@ PROMPT;
         ],
     ];
 
-    public function __construct(
-        private ?string $apiKey,
-        private string $model,
-        private string $effort,
-        private float $timeout,
-    ) {}
-
-    public function extract(string $prompt, array $context): ExtractedDraft
+    /**
+     * Context first, as data; the owner's words last, inside their own tag.
+     *
+     * @param  array{today: string, currency: string, payment_terms_days: int, clients: list<array<string, mixed>>}  $context
+     */
+    public static function userMessage(string $prompt, array $context): string
     {
-        if (! $this->apiKey) {
-            throw new AiUnavailableException('AI generation is not set up yet. Create the invoice by hand, or ask your administrator to add an Anthropic API key.', 'not_configured');
-        }
-
-        $client = new Client(apiKey: $this->apiKey, requestOptions: ['timeout' => $this->timeout, 'maxRetries' => 2]);
-
-        // Context first, as data; the owner's words last, inside their own tag.
-        $userMessage = "Today is {$context['today']}. The business invoices in {$context['currency']} by default, due {$context['payment_terms_days']} days after issue.\n\n"
+        return "Today is {$context['today']}. The business invoices in {$context['currency']} by default, due {$context['payment_terms_days']} days after issue.\n\n"
             ."Existing clients (JSON):\n<clients>\n".json_encode($context['clients'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\n</clients>\n\n"
             ."Description of the work:\n<description>\n{$prompt}\n</description>";
+    }
 
-        try {
-            $message = $client->beta->messages->create(
-                model: $this->model,
-                maxTokens: 16000,
-                system: self::SYSTEM,
-                messages: [['role' => 'user', 'content' => $userMessage]],
-                outputConfig: [
-                    'effort' => $this->effort,
-                    'format' => ['type' => 'json_schema', 'schema' => self::SCHEMA],
-                ],
-                fallbacks: 'default',
-                betas: ['server-side-fallback-2026-07-01'],
-            );
-        } catch (AuthenticationException $e) {
-            Log::error('Anthropic authentication failed', ['error' => $e->getMessage()]);
-            throw new AiUnavailableException('AI generation is not available right now. Please create the invoice by hand.', 'auth');
-        } catch (RateLimitException) {
-            throw new AiUnavailableException('AI generation is busy. Try again in a minute.', 'rate_limited');
-        } catch (APIStatusException|APIConnectionException $e) {
-            Log::warning('Anthropic request failed', ['error' => $e->getMessage()]);
-            throw new AiUnavailableException('AI generation is not available right now. Try again, or create the invoice by hand.', 'unavailable');
-        }
-
-        if ($message->stopReason === 'refusal') {
-            throw new AiUnavailableException('That description could not be turned into an invoice. Try rewording it.', 'refused');
-        }
-
-        $data = null;
-        foreach ($message->content as $block) {
-            if ($block->type === 'text') {
-                $data = json_decode($block->text, true);
-                break;
-            }
-        }
-
-        if (! is_array($data) || $message->stopReason === 'max_tokens') {
-            throw new AiUnavailableException('The draft came back incomplete. Try a shorter description.', 'invalid_output');
-        }
-
-        return new ExtractedDraft(
-            data: $data,
-            model: $message->model,
-            inputTokens: $message->usage->inputTokens,
-            outputTokens: $message->usage->outputTokens,
-        );
+    /**
+     * For APIs with plain JSON mode only: the schema goes in the instructions.
+     */
+    public static function systemWithSchema(): string
+    {
+        return self::SYSTEM."\n\nReply with one JSON object only, matching this JSON Schema exactly (every field present, null where unknown):\n"
+            .json_encode(self::SCHEMA, JSON_UNESCAPED_SLASHES);
     }
 }

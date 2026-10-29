@@ -5,7 +5,7 @@ use App\Models\BusinessProfile;
 use App\Models\Client;
 use App\Models\Plan;
 use App\Services\Ai\AiUnavailableException;
-use App\Services\Ai\ClaudeInvoiceDraftExtractor;
+use App\Services\Ai\Drivers\AnthropicExtractor;
 use App\Services\Ai\ExtractedDraft;
 use App\Services\Ai\InvoiceDraftExtractor;
 use Database\Seeders\PlanSeeder;
@@ -31,7 +31,7 @@ class FakeDraftExtractor implements InvoiceDraftExtractor
             throw $this->response;
         }
 
-        return new ExtractedDraft($this->response, 'claude-opus-5-5', 1200, 300);
+        return new ExtractedDraft($this->response, model: 'claude-opus-5-5', provider: 'anthropic', inputTokens: 1200, outputTokens: 300);
     }
 }
 
@@ -186,7 +186,7 @@ it('validates the prompt', function () {
 });
 
 it('says so when no API key is configured', function () {
-    $extractor = new ClaudeInvoiceDraftExtractor(apiKey: null, model: 'claude-opus-5-5', effort: 'low', timeout: 5);
+    $extractor = new AnthropicExtractor('anthropic', ['key' => null, 'model' => 'claude-opus-5-5'], 5);
 
     expect(fn () => $extractor->extract('10 hours', ['today' => '2026-10-29', 'currency' => 'USD', 'payment_terms_days' => 30, 'clients' => []]))
         ->toThrow(AiUnavailableException::class, 'not set up yet');

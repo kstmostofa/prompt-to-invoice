@@ -35,15 +35,4 @@ return [
         ],
     ],
 
-    /*
-    | Claude, for turning a description of work into an invoice draft.
-    | Effort "low" suits short extraction; raise it if drafts miss details.
-    */
-    'anthropic' => [
-        'key' => env('ANTHROPIC_API_KEY'),
-        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
-        'effort' => env('ANTHROPIC_EFFORT', 'low'),
-        'timeout' => (float) env('ANTHROPIC_TIMEOUT', 60),
-    ],
-
 ];
