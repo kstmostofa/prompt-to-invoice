@@ -31,6 +31,16 @@ php artisan migrate --seed
 php artisan storage:link
 ```
 
+Settings worth knowing in `backend/.env`:
+
+| Setting | Purpose |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Enables AI invoice drafts (Claude). Without it, invoices are created by hand. |
+| `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT` | Default `claude-opus-5-5`, `low` |
+| `MAIL_MAILER`, `MAIL_FROM_ADDRESS` | `log` writes emails to `storage/logs/laravel.log` locally |
+| `QUEUE_CONNECTION` | `sync` sends email immediately (local); use `database` or `redis` with `php artisan queue:work` in production |
+| `FRONTEND_URL` | Where email links (reset, verify, invoice view) point |
+
 With Herd: `herd link prompt-to-invoice-api && herd secure prompt-to-invoice-api` serves it at `https://prompt-to-invoice-api.test`. Otherwise `php artisan serve`.
 
 Checks:

@@ -8,8 +8,8 @@ The build plan for v1, phase by phase, with what is done and what is next. Scope
 | --- | --- | --- |
 | 1 | Foundation: accounts, workspaces, business profile, clients, admin portal | Done |
 | 2 | Invoicing core: invoices, totals, numbering, statuses, PDF, dashboard | Done |
-| 3 | AI generation and sending: prompt to invoice, email delivery | Next |
-| 4 | Billing and launch: Stripe subscriptions, landing page, deployment | Planned |
+| 3 | AI generation and sending: prompt to invoice, email delivery | Done (Google sign-in waits for credentials) |
+| 4 | Billing and launch: Stripe subscriptions, landing page, deployment | Next |
 
 ## Phase 1: Foundation (done)
 
@@ -50,27 +50,32 @@ Frontend
 - [x] Invoice page: on-screen document, actions menu, payment date, PDF download and inline view
 - [x] Dashboard with invoice stats and chart; client page lists the client's invoices
 
-## Phase 3: AI generation and sending (next)
+## Phase 3: AI generation and sending (done)
 
 Backend
-- [ ] `POST /v1/invoices/generate`: prompt in, structured draft out (client match or new client, line items, quantities, rates, currency, due date, notes). The model extracts fields only; the calculator does the maths.
-- [ ] LLM client behind an interface (provider and model in config), JSON-schema structured output, timeouts and retries
-- [ ] Match an existing client by name, company or email; propose a new one otherwise
-- [ ] Guardrails: Professional plan feature, per-workspace rate limit, prompt length cap, log usage for cost tracking
-- [ ] Email delivery: queued mailable with the PDF attached, sent to the client's address with a custom message; "Send" marks the invoice sent; resend
-- [ ] Public, signed link to view and download an invoice without signing in
-- [ ] Email verification on sign-up; Google sign-in (Socialite)
-- [ ] Evaluation set of sample prompts with expected drafts, run in tests against a fake model
+- [x] `POST /v1/invoices/generate`: prompt in, unsaved draft out (matched or suggested client, line items, currency, dates, discount, tax, notes, warnings)
+- [x] Claude (`claude-opus-5-5`, effort `low`) via the official PHP SDK with JSON-schema structured outputs and server-side refusal fallback; model, effort and key in config
+- [x] The model only extracts: every value is checked, clamped or dropped; clients must belong to the workspace; totals come from the calculator
+- [x] Extractor behind an interface; tests use a fake (no API calls in CI)
+- [x] Guardrails: plan switch (`has_ai_generation`), 10/min and 200/day per workspace, 2,000-character prompts, usage log (`ai_generations`: tokens, duration, outcome)
+- [x] Email delivery: queued mailable with the PDF attached, the owner's message, reply-to the business; draft becomes sent; last emailed recorded
+- [x] Public link per invoice (`/i/{token}`), PDF by token, first view recorded; drafts not public
+- [x] Email verification on sign-up (signed link to the frontend), resend; sending invoices requires a verified address
+- [x] Each throttled endpoint has its own rate-limit bucket
+- [ ] Google sign-in: needs the client's Google OAuth credentials (moved to Phase 4)
 
 Frontend
-- [ ] "Describe the work" prompt box (dashboard and new invoice): generates a draft into the editor for review before saving
-- [ ] Send dialog: recipient, subject, message, attach PDF; sent/viewed indicators
-- [ ] Public invoice page (no sign-in)
-- [ ] Verify-email screen; Google sign-in button
+- [x] "Describe the work" prompt on the dashboard and the new-invoice page; the draft opens in the editor with warnings and a prefilled "new client" for unknown clients
+- [x] Email dialog (to, cc, subject, message) with a sensible default message; copy client link
+- [x] Activity shows last emailed and viewed by client; invoices remember the prompt they were drafted from
+- [x] Public invoice page and PDF download without sign-in
+- [x] Verify-email page and "verify your email" banner with resend
+- [x] Expired or revoked tokens sign out to the login page instead of failing
 
-## Phase 4: Billing and launch (planned)
+## Phase 4: Billing and launch (next)
 
 Backend
+- [ ] Google sign-in (Socialite) once the client provides OAuth credentials
 - [ ] Laravel Cashier (Stripe): Professional checkout, customer portal, webhooks keep `workspaces.plan_id` in sync, cancel at period end
 - [ ] Plan features enforced from the plan record (AI generation, invoice limit)
 - [ ] Production config: queues (Redis + Horizon or database queue), mail provider, S3/R2 storage for logos, scheduled jobs, backups, error tracking
