@@ -45,7 +45,6 @@ class OpenAiCompatibleExtractor implements InvoiceDraftExtractor
             $response = Http::withToken($this->config['key'])
                 ->acceptJson()
                 ->timeout((int) ceil($this->timeout))
-                ->retry(2, 500, fn ($exception) => $exception instanceof ConnectionException, throw: false)
                 ->post(rtrim($this->config['base_url'], '/').'/chat/completions', $body);
         } catch (ConnectionException $e) {
             Log::warning("{$this->provider} unreachable", ['error' => $e->getMessage()]);

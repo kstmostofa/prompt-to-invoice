@@ -21,7 +21,9 @@ return [
     // Tried when the active provider is down, rate limited or misconfigured.
     'fallback' => env('AI_FALLBACK_PROVIDER'),
 
-    'timeout' => (float) env('AI_TIMEOUT', 60),
+    // Under the usual 30s gateway limit, so a stuck provider fails cleanly
+    // (and the fallback can answer) instead of the request being cut off.
+    'timeout' => (float) env('AI_TIMEOUT', 25),
 
     'providers' => [
 
@@ -50,8 +52,8 @@ return [
             'driver' => 'gemini',
             'key' => env('GEMINI_API_KEY'),
             'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
-            'model' => env('GEMINI_MODEL', 'gemini-3.8-flash'),
-            'models' => ['gemini-3.8-flash', 'gemini-4-argon'],
+            'model' => env('GEMINI_MODEL', 'gemini-3.5-flash'),
+            'models' => ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-4-argon'],
         ],
 
         // One key, many models (Llama, Mistral, DeepSeek, Qwen, ...).

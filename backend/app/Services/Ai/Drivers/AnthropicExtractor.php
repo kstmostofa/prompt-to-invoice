@@ -31,7 +31,7 @@ class AnthropicExtractor implements InvoiceDraftExtractor
             throw AiUnavailableException::notConfigured();
         }
 
-        $client = new Client(apiKey: $this->config['key'], requestOptions: ['timeout' => $this->timeout, 'maxRetries' => 2]);
+        $client = new Client(apiKey: $this->config['key'], requestOptions: ['timeout' => $this->timeout, 'maxRetries' => 0]);
 
         try {
             $message = $client->beta->messages->create(

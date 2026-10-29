@@ -32,7 +32,6 @@ class GeminiExtractor implements InvoiceDraftExtractor
             $response = Http::withHeaders(['x-goog-api-key' => $this->config['key']])
                 ->acceptJson()
                 ->timeout((int) ceil($this->timeout))
-                ->retry(2, 500, fn ($exception) => $exception instanceof ConnectionException, throw: false)
                 ->post("{$base}/models/{$this->config['model']}:generateContent", [
                     'systemInstruction' => ['parts' => [['text' => DraftPrompt::SYSTEM]]],
                     'contents' => [['role' => 'user', 'parts' => [['text' => DraftPrompt::userMessage($prompt, $context)]]]],
