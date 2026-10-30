@@ -12,6 +12,8 @@ class Plan extends Model
     /** @use HasFactory<PlanFactory> */
     use HasFactory;
 
+    public const FREE_SLUG = 'starter';
+
     /**
      * @var list<string>
      */
@@ -21,6 +23,7 @@ class Plan extends Model
         'description',
         'monthly_price',
         'currency',
+        'stripe_price_id',
         'monthly_invoice_limit',
         'business_profile_limit',
         'seat_limit',
@@ -45,6 +48,20 @@ class Plan extends Model
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    /**
+     * The plan new workspaces start on, and fall back to when a paid
+     * subscription ends.
+     */
+    public static function free(): ?self
+    {
+        return self::query()->where('slug', self::FREE_SLUG)->first();
+    }
+
+    public function isPurchasable(): bool
+    {
+        return $this->is_active && $this->stripe_price_id !== null;
     }
 
     /**

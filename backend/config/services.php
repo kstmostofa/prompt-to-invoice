@@ -28,6 +28,14 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Stripe recurring prices for the self-serve plans (keys live in config/cashier.php).
+    'stripe' => [
+        'prices' => [
+            'professional' => env('STRIPE_PRICE_PROFESSIONAL'),
+            'business' => env('STRIPE_PRICE_BUSINESS'),
+        ],
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

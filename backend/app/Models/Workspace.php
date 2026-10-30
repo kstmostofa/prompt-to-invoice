@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Laravel\Cashier\Billable;
 
 /**
  * @property WorkspaceStatus $status
@@ -17,6 +18,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class Workspace extends Model
 {
+    /*
+     * The workspace is the Stripe customer. Cashier's invoices() (Stripe
+     * invoices) is shadowed by our own invoices() relation; Stripe invoices
+     * are shown in the billing portal, so it is only kept as stripeInvoices().
+     */
+    use Billable {
+        Billable::invoices as stripeInvoices;
+    }
+
     /** @use HasFactory<WorkspaceFactory> */
     use HasFactory;
 
@@ -40,7 +50,16 @@ class Workspace extends Model
         return [
             'status' => WorkspaceStatus::class,
             'suspended_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Stripe receipts and the portal go to the owner.
+     */
+    public function stripeEmail(): ?string
+    {
+        return $this->owner?->email;
     }
 
     public function isActive(): bool

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Models\Workspace;
 use App\Services\Ai\AiRouter;
 use App\Services\Ai\InvoiceDraftExtractor;
 use App\Support\CurrentWorkspace;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +39,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Date::use(CarbonImmutable::class);
+
+        // Subscriptions belong to the workspace. A failed renewal keeps the
+        // plan while Stripe retries; Stripe cancels it if every retry fails.
+        Cashier::useCustomerModel(Workspace::class);
+        Cashier::keepPastDueSubscriptionsActive();
         Model::shouldBeStrict(! $this->app->isProduction());
 
         // The reset form lives in the Next.js app, not on this API.

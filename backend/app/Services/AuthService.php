@@ -91,7 +91,7 @@ class AuthService
             'name' => $name,
             'slug' => $this->uniqueSlug($name),
             'owner_id' => $owner->id,
-            'plan_id' => Plan::query()->where('slug', 'starter')->value('id'),
+            'plan_id' => Plan::free()?->id,
         ]);
 
         $workspace->members()->attach($owner->id, ['role' => WorkspaceRole::Owner->value]);

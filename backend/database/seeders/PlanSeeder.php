@@ -64,6 +64,12 @@ class PlanSeeder extends Seeder
         ];
 
         foreach ($plans as $plan) {
+            // A price set in .env wins; otherwise keep what an admin entered.
+            $price = config("services.stripe.prices.{$plan['slug']}");
+            if (filled($price)) {
+                $plan['stripe_price_id'] = $price;
+            }
+
             Plan::query()->updateOrCreate(['slug' => $plan['slug']], [...$plan, 'currency' => 'USD', 'is_active' => true]);
         }
     }

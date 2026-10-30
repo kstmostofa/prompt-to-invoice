@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\PublicInvoiceController;
+use App\Http\Controllers\Workspace\BillingController;
 use App\Http\Controllers\Workspace\BusinessProfileController;
 use App\Http\Controllers\Workspace\ClientController;
 use App\Http\Controllers\Workspace\DashboardController;
@@ -26,7 +27,8 @@ use Illuminate\Support\Facades\Route;
 |
 | One database. Workspace routes run behind the `workspace` middleware, which
 | scopes every BelongsToWorkspace query to the caller's workspace. Admin
-| routes are for platform staff and see across workspaces.
+| routes are for platform staff and see across workspaces. The Stripe
+| webhook is Cashier's own route: POST /stripe/webhook.
 |
 */
 
@@ -92,6 +94,10 @@ Route::prefix('v1')->group(function (): void {
                 Route::put('/business-profile', [BusinessProfileController::class, 'update']);
                 Route::post('/business-profile/logo', [BusinessProfileController::class, 'uploadLogo']);
                 Route::delete('/business-profile/logo', [BusinessProfileController::class, 'deleteLogo']);
+
+                Route::get('/billing', [BillingController::class, 'show']);
+                Route::post('/billing/checkout', [BillingController::class, 'checkout'])->middleware('throttle:10,1,billing');
+                Route::post('/billing/portal', [BillingController::class, 'portal'])->middleware('throttle:10,1,billing');
             });
         });
 

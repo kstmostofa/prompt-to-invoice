@@ -22,6 +22,8 @@ class PlanResource extends JsonResource
             // Null: custom pricing (Enterprise).
             'monthly_price' => $this->monthly_price,
             'currency' => $this->currency,
+            'stripe_price_id' => $this->when($request->is('v1/admin/*'), $this->stripe_price_id),
+            'is_purchasable' => $this->isPurchasable(),
             'monthly_invoice_limit' => $this->monthly_invoice_limit,
             'business_profile_limit' => $this->business_profile_limit,
             'seat_limit' => $this->seat_limit,
