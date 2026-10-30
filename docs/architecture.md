@@ -99,6 +99,7 @@ Stripe ─> POST /stripe/webhook (Cashier) ─> subscriptions table ─> SyncWor
 | `lib/api-urls.ts` | Every backend path |
 | `lib/api.ts` | Server-only fetch client; 422 returned, other errors thrown |
 | `lib/*.ts` | `"use server"` data modules per area |
+| `app/(marketing)` | Public site: landing page with live pricing, `/privacy`, `/terms` |
 | `app/(auth)` | Sign in, register, password reset |
 | `app/(portal)` | Workspace portal: dashboard, invoices, clients, settings, account |
 | `app/admin` | Platform admin portal |

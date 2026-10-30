@@ -86,7 +86,9 @@ Backend
 Frontend
 - [x] Billing page (`/settings/billing`): current plan and usage, plan cards with upgrade, manage subscription, checkout return notices, failed-payment warning
 - [x] Admin plan form: Stripe price ID; "Change plan" on workspace settings; "Upgrade" link under the invoice allowance
-- [ ] Landing page with pricing (from `/v1/plans`), privacy policy and terms
+- [x] Landing page at `/` (hero, how it works, features, live pricing from `/v1/plans`, FAQ); signed-in visitors go to their dashboard
+- [x] Privacy policy (`/privacy`) and terms (`/terms`) from a standard template
+- [ ] Client to approve the legal text: legal entity name and address, governing law, response times, refund wording
 - [ ] Production build and deployment (frontend and API), environment docs
 
 Handover
