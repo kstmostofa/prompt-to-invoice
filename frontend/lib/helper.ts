@@ -1,3 +1,4 @@
+import { Plan } from "@/types/api";
 import { SearchParams } from "@/types/global";
 
 export function getInitials(name: string): string {
@@ -68,6 +69,13 @@ export function formatMoney(amount: string | number | null | undefined, currency
     // Unknown currency codes fall back to a plain prefix.
     return `${currency} ${value.toFixed(2)}`;
   }
+}
+
+/** "Free", "$15.00 / month", or "Custom" for plans priced by quote. */
+export function planPrice(plan: Pick<Plan, "monthly_price" | "currency">): string {
+  if (plan.monthly_price === null) return "Custom";
+  if (Number(plan.monthly_price) === 0) return "Free";
+  return `${formatMoney(plan.monthly_price, plan.currency)} / month`;
 }
 
 export function slugify(text: string | null | undefined): string {

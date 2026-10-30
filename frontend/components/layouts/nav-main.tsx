@@ -3,6 +3,7 @@
 import Icon from "@/components/shared/icon";
 import {
   Building03Icon,
+  CreditCardIcon,
   ChevronRightIcon,
   DashboardSquare01Icon,
   Invoice01Icon,
@@ -85,6 +86,12 @@ function workspaceNav(pathname: string, user?: AccessUser | null): NavGroup[] {
               url: "/settings/workspace",
               icon: WorkflowSquare01Icon,
               isActive: pathname.startsWith("/settings/workspace"),
+            },
+            {
+              title: "Billing",
+              url: "/settings/billing",
+              icon: CreditCardIcon,
+              isActive: pathname.startsWith("/settings/billing"),
             },
           ],
         },

@@ -50,6 +50,7 @@ const planSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only"),
   description: z.string().max(255, "Description is too long"),
   monthly_price: z.string().regex(/^(\d+(\.\d{1,2})?)?$/, "Enter a valid amount (e.g. 15 or 15.99)"),
+  stripe_price_id: z.string().trim().regex(/^(price_[A-Za-z0-9]+)?$/, "A Stripe price ID, e.g. price_1Q2w3E…"),
   monthly_invoice_limit: limit,
   business_profile_limit: limit,
   seat_limit: limit,
@@ -72,6 +73,7 @@ function defaults(plan?: Plan | null): PlanFormData {
     slug: plan?.slug ?? "",
     description: plan?.description ?? "",
     monthly_price: plan ? asText(plan.monthly_price === null ? null : Number(plan.monthly_price)) : "",
+    stripe_price_id: plan?.stripe_price_id ?? "",
     monthly_invoice_limit: asText(plan?.monthly_invoice_limit),
     business_profile_limit: asText(plan?.business_profile_limit),
     seat_limit: asText(plan?.seat_limit),
@@ -117,6 +119,7 @@ export function PlanForm({ trigger, plan, description }: PlanFormProps) {
       slug: data.slug,
       description: data.description || null,
       monthly_price: data.monthly_price === "" ? null : Number(data.monthly_price),
+      stripe_price_id: data.stripe_price_id || null,
       monthly_invoice_limit: orNull(data.monthly_invoice_limit),
       business_profile_limit: orNull(data.business_profile_limit),
       seat_limit: orNull(data.seat_limit),
@@ -222,6 +225,15 @@ export function PlanForm({ trigger, plan, description }: PlanFormProps) {
               </div>
             </div>
             <p className="-mt-2 text-xs text-muted-foreground">0 is free. Leave the price empty for custom pricing.</p>
+
+            <div className="grid space-y-2">
+              <Label htmlFor="stripe_price_id">Stripe price ID</Label>
+              <Input id="stripe_price_id" placeholder="price_…" {...register("stripe_price_id")} />
+              <InputError message={errors.stripe_price_id?.message} />
+              <p className="text-xs text-muted-foreground">
+                The monthly recurring price in Stripe. With one set, workspaces can buy this plan from their billing page.
+              </p>
+            </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="grid space-y-2">

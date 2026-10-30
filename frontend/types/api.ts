@@ -10,6 +10,10 @@ export interface Plan {
   /** Null: custom pricing. */
   monthly_price: string | null;
   currency: string;
+  /** Admin endpoints only. */
+  stripe_price_id?: string | null;
+  /** Active with a Stripe price: can be bought from the billing page. */
+  is_purchasable: boolean;
   monthly_invoice_limit: number | null;
   business_profile_limit: number | null;
   seat_limit: number | null;
@@ -27,6 +31,7 @@ export interface PlanPayload {
   slug: string;
   description?: string | null;
   monthly_price?: number | null;
+  stripe_price_id?: string | null;
   monthly_invoice_limit?: number | null;
   business_profile_limit?: number | null;
   seat_limit?: number | null;
@@ -34,6 +39,27 @@ export interface PlanPayload {
   features: string[];
   is_active: boolean;
   sort_order: number;
+}
+
+export interface BillingSubscription {
+  status: string;
+  /** Paid up, or cancelled but still inside the paid period. */
+  active: boolean;
+  /** The last renewal failed; Stripe is retrying the card. */
+  past_due: boolean;
+  /** Set to end; ends_at is when. */
+  cancelled: boolean;
+  ends_at: string | null;
+}
+
+export interface Billing {
+  /** False until Stripe keys are configured on the API. */
+  enabled: boolean;
+  plan: Plan | null;
+  subscription: BillingSubscription | null;
+  has_billing_account: boolean;
+  usage: InvoiceUsage;
+  plans: Plan[];
 }
 
 export interface Workspace {

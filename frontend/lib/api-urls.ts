@@ -28,6 +28,10 @@ export const GET_BUSINESS_PROFILE = "/business-profile";
 export const UPDATE_BUSINESS_PROFILE = "/business-profile";
 export const BUSINESS_PROFILE_LOGO = "/business-profile/logo";
 
+export const GET_BILLING = "/billing";
+export const BILLING_CHECKOUT = "/billing/checkout";
+export const BILLING_PORTAL = "/billing/portal";
+
 export const GET_CLIENTS = "/clients";
 export const GET_CLIENT_OPTIONS = "/clients/options";
 export const CREATE_CLIENT = "/clients";

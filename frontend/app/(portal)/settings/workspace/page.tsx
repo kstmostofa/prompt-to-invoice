@@ -1,10 +1,12 @@
 import { WorkflowSquare01Icon } from "@hugeicons/core-free-icons";
 import AppLayout from "@/components/layouts/app-layout";
 import { DetailCard, LabeledItem } from "@/components/shared/detail-card";
-import { formatDate, formatMoney } from "@/lib/helper";
+import { formatDate, planPrice } from "@/lib/helper";
 import { pageTitle } from "@/lib/site";
 import { getWorkspace } from "@/lib/workspace";
 import { WorkspaceNameForm } from "./form";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export const metadata = { title: pageTitle("Workspace") };
 
@@ -24,13 +26,17 @@ export default async function WorkspaceSettingsPage() {
     >
       <div className="grid gap-4 lg:grid-cols-2">
         <WorkspaceNameForm name={workspace.name} />
-        <DetailCard title="Plan">
+        <DetailCard
+          title="Plan"
+          action={
+            <Button variant="outline" size="sm" render={<Link href="/settings/billing" />}>
+              Change plan
+            </Button>
+          }
+        >
           <div className="grid gap-4 sm:grid-cols-2">
             <LabeledItem label="Current plan" value={plan?.name ?? "—"} />
-            <LabeledItem
-              label="Price"
-              value={plan ? (plan.monthly_price === null ? "Custom" : Number(plan.monthly_price) === 0 ? "Free" : `${formatMoney(plan.monthly_price, plan.currency)} / month`) : "—"}
-            />
+            <LabeledItem label="Price" value={plan ? planPrice(plan) : "—"} />
             <LabeledItem label="Invoices a month" value={plan?.monthly_invoice_limit ?? "Unlimited"} />
             <LabeledItem label="Team members" value={`${workspace.members_count ?? 1} of ${plan?.seat_limit ?? "unlimited"}`} />
             <LabeledItem label="Clients" value={workspace.clients_count ?? 0} />

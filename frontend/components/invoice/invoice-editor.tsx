@@ -15,11 +15,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { applyFieldErrors } from "@/lib/form-errors";
 import { formatMoney } from "@/lib/helper";
 import { createInvoice, updateInvoice } from "@/lib/invoices";
+import { canManageWorkspace } from "@/lib/utils";
 import type { ClientOption, Invoice, InvoiceDefaults, InvoiceDraft, InvoicePayload } from "@/types/api";
 import { ValidationError } from "@/types/global";
 import { Alert02Icon, Delete02Icon, PlusSignIcon, SparklesIcon, UserAdd01Icon } from "@hugeicons/core-free-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -158,6 +161,7 @@ export function InvoiceEditor({ defaults, clients: initialClients, invoice, draf
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState(initialClients);
   const router = useRouter();
+  const { data: session } = useSession();
 
   const {
     register,
@@ -491,6 +495,14 @@ export function InvoiceEditor({ defaults, clients: initialClients, invoice, draf
             {!invoice && defaults.usage.limit !== null && (
               <p className="text-center text-xs text-muted-foreground">
                 {defaults.usage.used} of {defaults.usage.limit} invoices used this month
+                {canManageWorkspace(session?.user) && (
+                  <>
+                    {" · "}
+                    <Link href="/settings/billing" className="text-primary underline-offset-4 hover:underline">
+                      Upgrade
+                    </Link>
+                  </>
+                )}
               </p>
             )}
           </div>
