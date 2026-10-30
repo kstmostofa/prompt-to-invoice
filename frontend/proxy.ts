@@ -16,7 +16,9 @@ export const proxy = auth((req) => {
     pathname.startsWith("/reset-password") ||
     pathname.startsWith("/verify-email") ||
     pathname.startsWith("/session-expired") ||
-    pathname.startsWith("/i/")
+    pathname.startsWith("/i/") ||
+    pathname === "/privacy" ||
+    pathname === "/terms"
   ) {
     return NextResponse.next();
   }
@@ -26,7 +28,8 @@ export const proxy = auth((req) => {
   }
 
   if (!isLoggedIn) {
-    if (pathname === "/") return NextResponse.redirect(new URL("/login", req.url));
+    // The landing page.
+    if (pathname === "/") return NextResponse.next();
     const url = new URL("/login", req.url);
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
