@@ -9,7 +9,6 @@ use App\Models\BusinessProfile;
 use App\Support\CurrentWorkspace;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * The workspace's default business profile: what every invoice is issued from.
@@ -32,18 +31,18 @@ class BusinessProfileController extends Controller
     public function uploadLogo(Request $request, CurrentWorkspace $current): JsonResponse
     {
         $request->validate([
-            'logo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:2048'],
+            'logo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
         ]);
 
         $profile = $this->profile($current);
         $previous = $profile->logo_path;
 
         $profile->update([
-            'logo_path' => $request->file('logo')->store("workspaces/{$current->id()}/logos", 'public'),
+            'logo_path' => $request->file('logo')->store("workspaces/{$current->id()}/logos", config('filesystems.logo_disk')),
         ]);
 
         if ($previous) {
-            Storage::disk('public')->delete($previous);
+            BusinessProfile::logoDisk()->delete($previous);
         }
 
         return $this->successWithData(new BusinessProfileResource($profile), 'Logo uploaded');
@@ -54,7 +53,7 @@ class BusinessProfileController extends Controller
         $profile = $this->profile($current);
 
         if ($profile->logo_path) {
-            Storage::disk('public')->delete($profile->logo_path);
+            BusinessProfile::logoDisk()->delete($profile->logo_path);
             $profile->update(['logo_path' => null]);
         }
 

@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureUserActive;
 use App\Http\Middleware\EnsureWorkspaceManager;
 use App\Http\Middleware\ResolveWorkspace;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -30,6 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'workspace.manager' => EnsureWorkspaceManager::class,
             'admin' => EnsureAdmin::class,
         ]);
+
+        $middleware->append(SecurityHeaders::class);
 
         // A JSON API: the sign-in screens live in the Next.js frontend, so an
         // unauthenticated request gets a 401, never a redirect to a `login` route.

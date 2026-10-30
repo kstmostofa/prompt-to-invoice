@@ -68,6 +68,15 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
+        // A ceiling on everything under /v1, per user (or per IP when signed
+        // out), on top of the tighter per-endpoint limits. It runs before
+        // auth:sanctum, so the token is read through the guard directly.
+        RateLimiter::for('api', function (Request $request): Limit {
+            $user = $request->user('sanctum');
+
+            return Limit::perMinute(300)->by($user ? 'user:'.$user->getAuthIdentifier() : 'ip:'.$request->ip());
+        });
+
         // AI drafts cost money per call: 10 a minute and 200 a day per workspace.
         RateLimiter::for('ai', function (Request $request): array {
             $key = (string) ($request->user()->current_workspace_id ?? $request->ip());

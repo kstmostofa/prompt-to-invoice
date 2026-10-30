@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => ['message' => 'PromptToInvoice API']);
 
-Route::prefix('v1')->group(function (): void {
+Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     // Public: plan catalogue for the pricing and signup pages.
     Route::get('/plans', fn () => PlanResource::collection(
         Plan::query()->where('is_active', true)->orderBy('sort_order')->get(),

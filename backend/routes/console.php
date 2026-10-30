@@ -1,8 +1,13 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+/*
+| Housekeeping. Production runs `php artisan schedule:run` every minute
+| (cron) next to a queue worker; see docs/deployment.md.
+*/
+
+Schedule::command('sanctum:prune-expired --hours=24')->daily();
+Schedule::command('auth:clear-resets')->everyFifteenMinutes();
+Schedule::command('queue:prune-failed --hours=720')->daily();
+Schedule::command('cache:prune-stale-tags')->hourly()->when(fn (): bool => config('cache.default') === 'redis');

@@ -2,11 +2,11 @@
 
 namespace App\Http\Resources;
 
+use App\Models\BusinessProfile;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
 
 /** @mixin Invoice */
 class InvoiceResource extends JsonResource
@@ -44,7 +44,7 @@ class InvoiceResource extends JsonResource
             ] : null),
             'from' => [
                 ...Arr::except($from, ['logo_path']),
-                'logo_url' => isset($from['logo_path']) ? Storage::disk('public')->url($from['logo_path']) : null,
+                'logo_url' => isset($from['logo_path']) ? BusinessProfile::logoDisk()->url($from['logo_path']) : null,
             ],
             'to' => $this->to_details,
             'items' => $this->whenLoaded('items', fn () => $this->items->map(fn ($item) => [

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToWorkspace;
 use Database\Factories\BusinessProfileFactory;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -54,6 +55,14 @@ class BusinessProfile extends Model
 
     public function logoUrl(): ?string
     {
-        return $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null;
+        return $this->logo_path ? self::logoDisk()->url($this->logo_path) : null;
+    }
+
+    /**
+     * Where logos live: the public disk locally, S3 / R2 in production.
+     */
+    public static function logoDisk(): Filesystem
+    {
+        return Storage::disk(config('filesystems.logo_disk'));
     }
 }

@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Support\CurrentWorkspace;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class InvoiceService
@@ -299,7 +298,7 @@ class InvoiceService
     {
         return [
             ...$profile->only(['name', 'email', 'phone', 'website', 'address_line1', 'address_line2', 'city', 'state', 'postal_code', 'country', 'tax_id']),
-            'logo_path' => $profile->logo_path && Storage::disk('public')->exists($profile->logo_path) ? $profile->logo_path : null,
+            'logo_path' => $profile->logo_path && BusinessProfile::logoDisk()->exists($profile->logo_path) ? $profile->logo_path : null,
         ];
     }
 

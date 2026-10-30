@@ -2,10 +2,10 @@
 
 namespace App\Services\Invoices;
 
+use App\Models\BusinessProfile;
 use App\Models\Invoice;
 use App\Support\Money;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
 class InvoicePdf
@@ -47,12 +47,14 @@ class InvoicePdf
      */
     private function logo(?string $path): ?string
     {
-        if (! $path || ! Storage::disk('public')->exists($path)) {
+        $disk = BusinessProfile::logoDisk();
+
+        if (! $path || ! $disk->exists($path)) {
             return null;
         }
 
-        $mime = Storage::disk('public')->mimeType($path) ?: 'image/png';
+        $mime = $disk->mimeType($path) ?: 'image/png';
 
-        return "data:{$mime};base64,".base64_encode((string) Storage::disk('public')->get($path));
+        return "data:{$mime};base64,".base64_encode((string) $disk->get($path));
     }
 }

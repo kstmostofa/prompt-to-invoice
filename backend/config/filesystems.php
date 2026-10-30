@@ -16,6 +16,14 @@ return [
     'default' => env('FILESYSTEM_DISK', 'local'),
 
     /*
+    | Business logos: `public` (served from APP_URL/storage, run
+    | `php artisan storage:link`) or `s3` for S3 / Cloudflare R2 with a
+    | public bucket URL in AWS_URL.
+    */
+
+    'logo_disk' => env('LOGO_DISK', 'public'),
+
+    /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------

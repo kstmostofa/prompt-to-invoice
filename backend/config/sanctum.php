@@ -50,7 +50,9 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Minutes. Signing in again after 30 days is the price of a stolen token
+    // not working forever; expired tokens are pruned daily (routes/console.php).
+    'expiration' => env('SANCTUM_EXPIRATION', 60 * 24 * 30),
 
     /*
     |--------------------------------------------------------------------------
