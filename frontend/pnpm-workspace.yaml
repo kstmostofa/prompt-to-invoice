@@ -21,3 +21,9 @@ minimumReleaseAgeExclude:
   - '@next/swc-win32-x64-msvc@16.3.0'
   - eslint-config-next@16.3.0
   - next@16.3.0
+# Patched transitive versions (security pass, 2026-10-30). Same major as what
+# the parents ask for; drop an entry once the parent ships it.
+overrides:
+  fast-uri: ^3.1.9
+  nanoid@3: ^3.3.18
+  source-map-js: ^1.2.2
