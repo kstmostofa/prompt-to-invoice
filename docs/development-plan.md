@@ -9,7 +9,7 @@ The build plan for v1, phase by phase, with what is done and what is next. Scope
 | 1 | Foundation: accounts, workspaces, business profile, clients, admin portal | Done |
 | 2 | Invoicing core: invoices, totals, numbering, statuses, PDF, dashboard | Done |
 | 3 | AI generation and sending: prompt to invoice, email delivery | Done (Google sign-in waits for credentials) |
-| 4 | Billing and launch: Stripe subscriptions, landing page, deployment | Next |
+| 4 | Billing and launch: Stripe subscriptions, landing page, deployment | In progress (billing built; needs Stripe keys to test end to end) |
 
 ## Phase 1: Foundation (done)
 
@@ -73,17 +73,19 @@ Frontend
 - [x] Verify-email page and "verify your email" banner with resend
 - [x] Expired or revoked tokens sign out to the login page instead of failing
 
-## Phase 4: Billing and launch (next)
+## Phase 4: Billing and launch (in progress)
 
 Backend
 - [ ] Google sign-in (Socialite) once the client provides OAuth credentials
-- [ ] Laravel Cashier (Stripe): Professional checkout, customer portal, webhooks keep `workspaces.plan_id` in sync, cancel at period end
-- [ ] Plan features enforced from the plan record (AI generation, invoice limit)
+- [x] Laravel Cashier (Stripe), workspace as the customer: Checkout for any plan with a Stripe price, customer portal (card, receipts, change plan, cancel at period end), webhooks keep `workspaces.plan_id` in sync, failed renewals keep the plan while Stripe retries, admin-assigned plans are never downgraded
+- [x] Plan features enforced from the plan record (AI generation, invoice limit)
+- [ ] End-to-end check against Stripe test mode once the client's Stripe account is connected (keys, prices, webhook endpoint, portal settings)
 - [ ] Production config: queues (Redis + Horizon or database queue), mail provider, S3/R2 storage for logos, scheduled jobs, backups, error tracking
 - [ ] Security pass: rate limits, CORS, headers, dependency audit
 
 Frontend
-- [ ] Billing page: current plan, upgrade, manage subscription
+- [x] Billing page (`/settings/billing`): current plan and usage, plan cards with upgrade, manage subscription, checkout return notices, failed-payment warning
+- [x] Admin plan form: Stripe price ID; "Change plan" on workspace settings; "Upgrade" link under the invoice allowance
 - [ ] Landing page with pricing (from `/v1/plans`), privacy policy and terms
 - [ ] Production build and deployment (frontend and API), environment docs
 
