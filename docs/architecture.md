@@ -21,13 +21,15 @@ Browser ──> Next.js (frontend/)  ──Bearer token──>  Laravel API (bac
 - The `workspace` middleware (`ResolveWorkspace`) picks the workspace from the `X-Workspace` header or the user's `current_workspace_id`, checks membership and that the workspace is active, and sets `CurrentWorkspace`.
 - It runs **before route model binding** (`prependToPriorityList`), so `/clients/{id}` of another workspace answers 404.
 - Platform admins (`users.is_admin`) use `/v1/admin/*`, where no workspace scope applies.
+- The visitor's IP reaches the API as `X-Forwarded-For` from the Next.js server (`frontend/lib/client-ip.ts`), and is believed only from `TRUSTED_PROXIES` (`config/trustedproxy.php`). Rate limits and logs depend on it; see [deployment.md](deployment.md).
 
 ## Backend layout
 
 | Path | Purpose |
 | --- | --- |
 | `routes/api.php` | All routes under `/v1`: public, `auth`, workspace, `admin` |
-| `app/Http/Middleware` | `ResolveWorkspace`, `EnsureWorkspaceManager`, `EnsureAdmin`, `EnsureUserActive` |
+| `app/Http/Middleware` | `ResolveWorkspace`, `EnsureWorkspaceManager`, `EnsureAdmin`, `EnsureUserActive`, `SecurityHeaders` (global) |
+| `app/Console/Commands` | `app:create-admin` |
 | `app/Http/Controllers/{Auth,Workspace,Admin}` | Thin controllers; validation in `app/Http/Requests` |
 | `app/Http/Resources` | API resources (stock Laravel pagination: `data`, `links`, `meta`) |
 | `app/Services` | `AuthService`, `BillingService`; `Invoices/InvoiceService`, `InvoiceCalculator`, `InvoicePdf`; `Ai/InvoiceDraftService`, `Ai/ClaudeInvoiceDraftExtractor` |

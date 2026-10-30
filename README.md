@@ -14,6 +14,7 @@ AI-powered invoicing for freelancers and small businesses: describe the work, ge
 - [Estimate & delivery plan](docs/estimate-and-delivery-plan.md): scope, stack, milestones, effort, pricing
 - [Development plan](docs/development-plan.md): phases and progress
 - [Architecture](docs/architecture.md): how the code fits together
+- [Deployment](docs/deployment.md): production setup, settings, background processes, launch checklist
 
 ## Requirements
 

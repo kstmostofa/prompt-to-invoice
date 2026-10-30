@@ -80,8 +80,9 @@ Backend
 - [x] Laravel Cashier (Stripe), workspace as the customer: Checkout for any plan with a Stripe price, customer portal (card, receipts, change plan, cancel at period end), webhooks keep `workspaces.plan_id` in sync, failed renewals keep the plan while Stripe retries, admin-assigned plans are never downgraded
 - [x] Plan features enforced from the plan record (AI generation, invoice limit)
 - [ ] End-to-end check against Stripe test mode once the client's Stripe account is connected (keys, prices, webhook endpoint, portal settings)
-- [ ] Production config: queues (Redis + Horizon or database queue), mail provider, S3/R2 storage for logos, scheduled jobs, backups, error tracking
-- [ ] Security pass: rate limits, CORS, headers, dependency audit
+- [x] Production config: database queue worker, scheduled pruning (expired tokens, reset tokens, failed jobs), logos on a configurable disk (local or S3/R2), `app:create-admin` for the first platform admin
+- [x] Security pass: trusted proxies so rate limits see the visitor, a 300/min API ceiling, security headers on both apps, 30-day token expiry, no SVG logos, no CORS, Next.js upgraded past the critical advisories (16.4.3), `composer audit` and `pnpm audit --prod` clean
+- [ ] Choose the mail provider, error tracking (Slack alerts now, Sentry with the client's account) and backup setup with the client; see [deployment.md](deployment.md)
 
 Frontend
 - [x] Billing page (`/settings/billing`): current plan and usage, plan cards with upgrade, manage subscription, checkout return notices, failed-payment warning
@@ -89,7 +90,8 @@ Frontend
 - [x] Landing page at `/` (hero, how it works, features, live pricing from `/v1/plans`, FAQ); signed-in visitors go to their dashboard
 - [x] Privacy policy (`/privacy`) and terms (`/terms`) from a standard template
 - [ ] Client to approve the legal text: legal entity name and address, governing law, response times, refund wording
-- [ ] Production build and deployment (frontend and API), environment docs
+- [x] Environment and deployment docs ([deployment.md](deployment.md))
+- [ ] Production build and deployment (frontend and API) on the client's hosting
 
 Handover
 - [ ] Staging demo, client acceptance, production go-live
